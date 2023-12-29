@@ -217,7 +217,7 @@ static int parse_text(xmlTextReaderPtr reader, tmx_text *text) {
 		text->halign = parse_horizontal_align(value);
 		tmx_free_func(value);
 	}
-	
+
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"valign"))) { /* valign */
 		text->valign = parse_vertical_align(value);
 		tmx_free_func(value);
@@ -487,9 +487,6 @@ static int parse_layer(xmlTextReaderPtr reader, tmx_layer **layer_headadr, int m
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"id"))) { /* id */
 		res->id = atoi(value);
 		tmx_free_func(value);
-	} else {
-		tmx_err(E_MISSEL, "xml parser: missing 'id' attribute in the 'layer' element");
-		return 0;
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"name"))) { /* name */
@@ -516,6 +513,16 @@ static int parse_layer(xmlTextReaderPtr reader, tmx_layer **layer_headadr, int m
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"offsety"))) { /* offsety */
 		res->offsety = (int)atoi(value);
+		tmx_free_func(value);
+	}
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"parallaxx"))) { /* parallaxx */
+		res->parallaxx = atof(value);
+		tmx_free_func(value);
+	}
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"parallaxy"))) { /* parallaxy */
+		res->parallaxy = atof(value);
 		tmx_free_func(value);
 	}
 
@@ -1138,13 +1145,17 @@ tmx_map *parse_xml(tmx_resource_manager *rc_mgr, const char *filename) {
 }
 
 tmx_map* parse_xml_buffer(tmx_resource_manager *rc_mgr, const char *buffer, int len) {
+	parse_xml_buffer_path(rc_mgr, buffer, len, NULL);
+}
+
+tmx_map* parse_xml_buffer_path(tmx_resource_manager *rc_mgr, const char *buffer, int len, const char *path) {
 	xmlTextReaderPtr reader;
 	tmx_map *res = NULL;
 
 	setup_libxml_mem();
 
 	if ((reader = xmlReaderForMemory(buffer, len, NULL, NULL, 0))) {
-		res = parse_map_document(reader, rc_mgr, NULL);
+		res = parse_map_document(reader, rc_mgr, path);
 	} else {
 		tmx_err(E_UNKN, "xml parser: unable to create parser for buffer");
 	}
